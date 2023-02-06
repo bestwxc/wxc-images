@@ -3,23 +3,34 @@
 set -euxo pipefail
 
 skip=0
+type=ubuntu
+main_mirror=archive.ubuntu.com
+security_mirror=security.ubuntu.com
 mirror=mirrors.ustc.edu.cn
 
 print_help() {
-  echo "Usage: sm [-h] [-s] [-m mirror]"
+  echo "Usage: sm [-h] [-s] [-t debian_type] [-m mirror] [-a main_mirror] [-e security_mirror]"
   echo "Options:"
   echo "  -h: print the help."
   echo "  -s: skip set mirror, default 0"
   echo "  -m mirror: set a mirror url, default mirrors.ustc.edu.cn"
+  echo "  -a main_mirror: set a main_mirror url, default archive.ubuntu.com"
+  echo "  -e security_mirror: set a security_mirror url, default security.ubuntu.com"
   exit 1
 }
 
-while getopts 'hsm:' OPT; do
+temp_main_mirror=
+temp_security_mirror=
+
+while getopts 'hst:m:a:b:' OPT; do
     case $OPT in
       h) print_help
         ;;
-      m) mirror=$OPTARG;;
       s) skip=1;;
+      t) type=$OPTARG;;
+      m) mirror=$OPTARG;;
+      a) temp_main_mirror=$OPTARG;;
+      e) temp_security_mirror=$OPTARG;;
       *) print_help
         ;;
     esac
@@ -28,6 +39,25 @@ done
 if [ $skip -eq "1" ];then
   echo "skip = $skip, skip set mirror."
   exit 0
+fi
+
+if [ -n "$type" ];then
+  case $type in
+    "debian")
+      main_mirror=deb.debian.org
+      security_mirror=security.debian.org
+      ;;
+    "*")
+      ;;
+    esac
+fi
+
+if [ -n "$temp_main_mirror" ];then
+  main_mirror=$temp_main_mirror
+fi
+
+if [ -n "$temp_security_mirror" ];then
+  security_mirror=$temp_security_mirror
 fi
 
 echo "will set mirror: $mirror"
@@ -41,8 +71,8 @@ fi
 
 cp /etc/apt/sources.list $bak_file
 
-sed -i s@/archive.ubuntu.com/@/"$mirror"/@g /etc/apt/sources.list
-sed -i s@/security.ubuntu.com/@/"$mirror"/@g /etc/apt/sources.list
+sed -i s@/"$main_mirror"/@/"$mirror"/@g /etc/apt/sources.list
+sed -i s@/"$security_mirror"/@/"$mirror"/@g /etc/apt/sources.list
 echo "set mirror success"
 apt update
 
