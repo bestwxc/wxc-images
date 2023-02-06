@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -euxo pipefail
+
+print_help(){
+  echo "Usage: ucm [-r] [-h]"
+  echo "Options:"
+  echo "  -h print this help message."
+  echo "  -r remove the apt cache."
+  exit 1
+}
+
+remove=0
+while getopts 'hr' OPT; do
+  case $OPT in
+    r)remove=1;;
+    h)print_help;;
+    *)print_help;;
+  esac
+done
+
+bak_file=/etc/apt/source.list.sm
+
+if [ ! -e $bak_file ];then
+  echo "bak_file: $bak_file not exists. please check use sm first."
+  exit 11
+fi
+
+rm -rf /etc/apt/source.list
+mv $bak_file /etc/apt/source.list
+
+if [ $remove -eq "1" ]; then
+  echo "clean = $remove, will the yum cache."
+  rm -rf rm -rf /var/lib/apt/lists/*
+fi
+

@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -euxo pipefail
+
+skip=0
+mirror=mirrors.ustc.edu.cn
+
+print_help() {
+  echo "Usage: sm [-h] [-s] [-m mirror]"
+  echo "Options:"
+  echo "  -h: print the help."
+  echo "  -s: skip set mirror, default 0"
+  echo "  -m mirror: set a mirror url, default mirrors.ustc.edu.cn"
+  exit 1
+}
+
+while getopts 'hsm:' OPT; do
+    case $OPT in
+      h) print_help
+        ;;
+      m) mirror=$OPTARG;;
+      s) skip=1;;
+      *) print_help
+        ;;
+    esac
+done
+
+if [ $skip -eq "1" ];then
+  echo "skip = $skip, skip set mirror."
+  exit 0
+fi
+
+echo "will set mirror: $mirror"
+
+bak_file=/etc/apt/source.list.sm
+
+if [ -e $bak_file ];then
+  echo "bak_file: $bak_file exists."
+  exit 2
+fi
+
+cp /etc/apt/sources.list $bak_file
+
+sed -i s@/archive.ubuntu.com/@/"$mirror"/@g /etc/apt/sources.list
+sed -i s@/security.ubuntu.com/@/"$mirror"/@g /etc/apt/sources.list
+echo "set mirror success"
+apt update
+
+
+
+

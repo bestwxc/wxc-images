@@ -1,0 +1,8 @@
+ARG IMAGE_NAME=ubuntu
+ARG IMAGE_TAG=22.04
+
+FROM $IMAGE_NAME:$IMAGE_TAG
+
+COPY wxc /wxc
+
+
